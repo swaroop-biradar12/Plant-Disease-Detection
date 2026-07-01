@@ -1,4 +1,6 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+  ? "http://127.0.0.1:8000"
+  : "https://plant-disease-detection-6elr.onrender.com";
 
 const panels = {
   upload: document.getElementById("panel-upload"),
