@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canopy — plant disease scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="grid-overlay" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark"></span>
+    <span class="brand-name">Canopy</span>
+  </div>
+  <div class="topbar-meta">
+    <span class="meta-item"><span class="meta-dot" id="backendDot"></span><span id="backendStatus">checking backend…</span></span>
+  </div>
+</header>
+
+<main class="stage">
+
+  <!-- STEP 1: UPLOAD -->
+  <section class="panel" id="panel-upload" data-active="true">
+    <div class="panel-inner">
+      <p class="eyebrow">01 — sample input</p>
+      <h1 class="display">Point your camera<br>at the problem.</h1>
+      <p class="lede">Upload a leaf photo. Canopy runs it through a YOLO26 detector trained on six disease classes, then a language model writes the field report.</p>
+
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload a leaf image">
+        <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" hidden>
+        <div class="dropzone-icon"><i class="ti ti-leaf" aria-hidden="true"></i></div>
+        <p class="dropzone-title">Drop a leaf image here</p>
+        <p class="dropzone-sub">or click to browse — JPG, PNG, WEBP</p>
+      </div>
+
+      <div class="config-row">
+        <div class="config-field">
+          <label for="apiKey">Gemini API key</label>
+          <input type="password" id="apiKey" placeholder="Enter your Gemini API key" />
+      </div>
+        
+        <div class="config-field config-field-sm">
+          <label for="langSelect">Report language</label>
+          <select id="langSelect">
+            <option value="English">English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Marathi">Marathi</option>
+          </select>
+        </div>
+        <div class="config-field config-field-sm">
+          <label for="confSlider">Confidence <span id="confVal">0.50</span></label>
+          <input type="range" id="confSlider" min="0.1" max="1" step="0.05" value="0.5">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: SCANNING -->
+  <section class="panel" id="panel-scan" data-active="false">
+    <div class="panel-inner panel-inner-center">
+      <p class="eyebrow">02 — analysis in progress</p>
+      <div class="scan-stage">
+        <img id="scanImage" class="scan-image" alt="Uploaded leaf being analyzed">
+        <div class="scan-line"></div>
+        <div class="scan-corners">
+          <span class="corner tl"></span><span class="corner tr"></span>
+          <span class="corner bl"></span><span class="corner br"></span>
+        </div>
+      </div>
+      <div class="scan-log" id="scanLog">
+        <p class="scan-log-line active" data-step="detect"><span class="log-tick">›</span> Running YOLO26 detector…</p>
+        <p class="scan-log-line" data-step="advice"><span class="log-tick">›</span> Consulting Gemini for field report…</p>
+        <p class="scan-log-line" data-step="done"><span class="log-tick">›</span> Compiling results…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3: RESULTS -->
+  <section class="panel" id="panel-results" data-active="false">
+    <div class="panel-inner">
+      <p class="eyebrow">03 — field report</p>
+
+      <div class="results-grid">
+
+        <div class="result-card image-card">
+          <p class="card-label">Detection overlay</p>
+          <div class="image-frame">
+            <img id="resultImage" alt="Original leaf image">
+          </div>
+          <div class="detections-list" id="detectionsList"></div>
+        </div>
+
+        <div class="result-card report-card">
+          <p class="card-label">Diagnosis</p>
+          <div id="reportBody" class="report-body"></div>
+
+          <div class="audio-row">
+            <button class="btn-listen" id="listenBtn">
+              <i class="ti ti-volume" aria-hidden="true"></i>
+              <span>Listen to report</span>
+            </button>
+            <audio id="audioPlayer" controls hidden></audio>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="btn-reset" id="resetBtn"><i class="ti ti-arrow-back-up" aria-hidden="true"></i> Scan another leaf</button>
+    </div>
+  </section>
+
+  <!-- ERROR STATE -->
+  <section class="panel" id="panel-error" data-active="false">
+    <div class="panel-inner panel-inner-center">
+      <div class="error-icon"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+      <h2 class="error-title">Scan failed</h2>
+      <p class="error-detail" id="errorDetail"></p>
+      <button class="btn-reset" id="errorResetBtn"><i class="ti ti-refresh" aria-hidden="true"></i> Try again</button>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.1.0/iconfont/tabler-icons.min.css"></script>
+<script src="app.js"></script>
+</body>
+</html>

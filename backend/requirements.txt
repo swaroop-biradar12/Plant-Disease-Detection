@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-multipart
+Pillow
+google-genai
+opencv-python-headless
+gtts
+onnx
+onnxruntime
+numpy
+python-dotenv
