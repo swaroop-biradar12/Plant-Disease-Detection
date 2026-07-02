@@ -152,6 +152,8 @@ function renderResults(data) {
   const isLowConfidence = !data.healthy && maxConfidence < LOW_CONFIDENCE_THRESHOLD;
 
   if (isLowConfidence) {
+    const lowConfidenceMessage = "This doesn't look like a clear plant leaf photo, or the image quality made detection unreliable. Try a closer, well-lit photo of a single leaf for a more accurate diagnosis.";
+
     detectionsList.innerHTML = `
       <div class="detection-row">
         <span class="detection-name" style="color: var(--amber)">
@@ -160,11 +162,10 @@ function renderResults(data) {
       </div>`;
 
     document.getElementById("reportBody").innerHTML = `
-      <p style="color: var(--text-faint)">
-        This doesn't look like a clear plant leaf photo, or the image quality made detection unreliable.
-        Try a closer, well-lit photo of a single leaf for a more accurate diagnosis.
-      </p>`;
-    document.getElementById("listenBtn").style.display = "none";
+      <p style="color: var(--text-faint)">${lowConfidenceMessage}</p>`;
+
+    lastReportText = lowConfidenceMessage;
+    document.getElementById("listenBtn").style.display = "inline-flex";
 
     showPanel("results");
     return; // skip the normal rendering below
