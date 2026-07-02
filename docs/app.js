@@ -140,25 +140,79 @@ async function runDetection() {
   }
 }
 
-// ── Regenerate report in a different language ──────────────────────────────
-document.getElementById("regenerateBtn")?.addEventListener("click", async () => {
-  const btn = document.getElementById("regenerateBtn");
-  const newLanguage = document.getElementById("resultLangSelect").value;
-  document.getElementById("langSelect").value = newLanguage; // keep in sync
+// ── Translate report in place when language changes ────────────────────────
+async function translateReport(newLanguage) {
+  if (!lastRawAdvice) return;
 
-  btn.disabled = true;
-  btn.textContent = "Regenerating…";
+  const reportBody = document.getElementById("reportBody");
+  const audioPlayer = document.getElementById("audioPlayer");
+  const apiKey = document.getElementById("apiKey").value.trim();
+
+  reportBody.style.opacity = "0.4";
 
   try {
-    await runDetection(); // re-runs the full scan + report using currentFile and new language
+    const formData = new FormData();
+    formData.append("report_text", lastRawAdvice);
+    formData.append("language", newLanguage);
+    formData.append("gemini_key", apiKey);
+
+    const res = await fetch(`${API_URL}/translate`, {
+      method: "POST",
+      body: formData
+    });
+
+    if (!res.ok) throw new Error("Translation failed");
+
+    const data = await res.json();
+    const parsed = parseReport(data.translated);
+    lastReportText = buildSpeechText(parsed);
+
+    reportBody.innerHTML = `
+      <div class="report-row">
+        <p>${parsed.OVERVIEW || ""}</p>
+      </div>
+      <div class="report-stats">
+        <div>
+          <p class="report-stat-label">Severity</p>
+          <p class="report-stat-value">${parsed.SEVERITY || "—"}</p>
+        </div>
+        <div>
+          <p class="report-stat-label">Likely cause</p>
+          <p class="report-stat-value">${parsed.CAUSE || "—"}</p>
+        </div>
+      </div>
+      <div class="report-row">
+        <p class="report-label">Symptoms</p>
+        <p>${parsed.SYMPTOMS || ""}</p>
+      </div>
+      <div class="report-row">
+        <p class="report-label">Treatment</p>
+        <ul class="report-list">${listItems(parsed.TREATMENT)}</ul>
+      </div>
+      <div class="report-row">
+        <p class="report-label">Prevention</p>
+        <ul class="report-list">${listItems(parsed.PREVENTION)}</ul>
+      </div>
+    `;
+
+    // reset audio — old audio was in the previous language
+    audioPlayer.hidden = true;
+    audioPlayer.removeAttribute("src");
+
+  } catch (err) {
+    alert("Could not translate report: " + err.message);
   } finally {
-    btn.disabled = false;
-    btn.textContent = "Regenerate report";
+    reportBody.style.opacity = "1";
   }
+}
+
+document.getElementById("resultLangSelect").addEventListener("change", (e) => {
+  translateReport(e.target.value);
 });
 
 // ── Render results ────────────────────────────────────────────────────────
 let lastReportText = "";
+let lastRawAdvice = ""; // raw Gemini report text, used for re-translation
 
 function renderResults(data) {
   const detectionsList = document.getElementById("detectionsList");
@@ -220,6 +274,7 @@ function renderResults(data) {
       </p>`;
     listenBtn.style.display = "none";
   } else if (data.ai_advice) {
+    lastRawAdvice = data.ai_advice; // store for translation
     const parsed = parseReport(data.ai_advice);
     lastReportText = buildSpeechText(parsed);
 

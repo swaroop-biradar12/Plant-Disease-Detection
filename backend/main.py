@@ -86,6 +86,42 @@ async def predict(
     return response_data
 
 
+# ─── Translate an existing report ───────────────────────────────────────────
+@app.post("/translate")
+async def translate_report(
+    report_text: str = Form(...),
+    language: str = Form(...),
+    gemini_key: str = Form(default="")
+):
+    key_to_use = gemini_key.strip() if gemini_key else ""
+    if not key_to_use:
+        key_to_use = os.getenv("GEMINI_API_KEY", "")
+
+    if not key_to_use:
+        return JSONResponse(status_code=400, content={"error": "No API key available"})
+
+    try:
+        client = genai.Client(api_key=key_to_use)
+
+        prompt = f"""Translate the following plant disease report into {language}.
+
+Keep the EXACT same structure and keys (OVERVIEW, SEVERITY, CAUSE, SYMPTOMS, TREATMENT, PREVENTION) — do not translate the key names themselves, only translate the values. Keep the "|" separators between bullet points exactly as they are.
+
+Report to translate:
+{report_text}
+
+Respond ONLY with the translated report in the same format, no extra text before or after."""
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[types.Part.from_text(text=prompt)]
+        )
+        return {"translated": response.text}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 # ─── Gemini helper function ─────────────────────────────────────────────────────
 def get_gemini_advice(image, detected_diseases, language, api_key):
     import time as time_module
