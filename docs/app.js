@@ -4,6 +4,8 @@ const API_URL = window.location.hostname === "127.0.0.1" || window.location.host
 
 const LOW_CONFIDENCE_THRESHOLD = 0.70; // detections below this are treated as unreliable  
 
+let lastDetectionData = null; // stores last /predict response so we can regenerate report in a new language
+
 const panels = {
   upload: document.getElementById("panel-upload"),
   scan: document.getElementById("panel-scan"),
@@ -128,6 +130,7 @@ async function runDetection() {
 
     const data = await res.json();
     console.log("Backend response:", data);
+    lastDetectionData = data; // cache for language regeneration
     setLogStep("done");
 
     setTimeout(() => renderResults(data), 500);
@@ -136,6 +139,23 @@ async function runDetection() {
     showError(err.message || "Could not reach the backend. Make sure FastAPI is running on port 8000.");
   }
 }
+
+// ── Regenerate report in a different language ──────────────────────────────
+document.getElementById("regenerateBtn")?.addEventListener("click", async () => {
+  const btn = document.getElementById("regenerateBtn");
+  const newLanguage = document.getElementById("resultLangSelect").value;
+  document.getElementById("langSelect").value = newLanguage; // keep in sync
+
+  btn.disabled = true;
+  btn.textContent = "Regenerating…";
+
+  try {
+    await runDetection(); // re-runs the full scan + report using currentFile and new language
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Regenerate report";
+  }
+});
 
 // ── Render results ────────────────────────────────────────────────────────
 let lastReportText = "";

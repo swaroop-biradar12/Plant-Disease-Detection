@@ -44,7 +44,7 @@
           <input type="password" id="apiKey" placeholder="Enter your Gemini API key" />
       </div>
         
-        <div class="config-field config-field-sm">
+        <div class="config-field config-field-sm" style="margin-bottom: 16px;">
           <label for="langSelect">Report language</label>
           <select id="langSelect">
             <option value="English">English</option>
@@ -52,6 +52,8 @@
             <option value="Marathi">Marathi</option>
           </select>
         </div>
+        <button id="regenerateBtn" style="margin-bottom: 20px;">Regenerate report</button>
+
         <div class="config-field config-field-sm">
           <label for="confSlider">Confidence <span id="confVal">0.50</span></label>
           <input type="range" id="confSlider" min="0.1" max="1" step="0.05" value="0.5">
