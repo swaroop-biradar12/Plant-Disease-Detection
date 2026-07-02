@@ -2,6 +2,8 @@ const API_URL = window.location.hostname === "127.0.0.1" || window.location.host
   ? "http://127.0.0.1:8000"
   : "https://plant-disease-detection-1-r652.onrender.com";
 
+const LOW_CONFIDENCE_THRESHOLD = 0.70; // detections below this are treated as unreliable  
+
 const panels = {
   upload: document.getElementById("panel-upload"),
   scan: document.getElementById("panel-scan"),
@@ -141,6 +143,32 @@ let lastReportText = "";
 function renderResults(data) {
   const detectionsList = document.getElementById("detectionsList");
   detectionsList.innerHTML = "";
+
+   // ── Low-confidence guard: likely not a real leaf photo ───────────────────
+  const maxConfidence = data.detections && data.detections.length
+    ? Math.max(...data.detections.map(d => d.confidence))
+    : 0;
+
+  const isLowConfidence = !data.healthy && maxConfidence < LOW_CONFIDENCE_THRESHOLD;
+
+  if (isLowConfidence) {
+    detectionsList.innerHTML = `
+      <div class="detection-row">
+        <span class="detection-name" style="color: var(--amber)">
+          <i class="ti ti-alert-triangle" aria-hidden="true"></i>&nbsp; Low confidence detection
+        </span>
+      </div>`;
+
+    document.getElementById("reportBody").innerHTML = `
+      <p style="color: var(--text-faint)">
+        This doesn't look like a clear plant leaf photo, or the image quality made detection unreliable.
+        Try a closer, well-lit photo of a single leaf for a more accurate diagnosis.
+      </p>`;
+    document.getElementById("listenBtn").style.display = "none";
+
+    showPanel("results");
+    return; // skip the normal rendering below
+  }
 
   if (data.healthy) {
     detectionsList.innerHTML = `
