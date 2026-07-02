@@ -93,7 +93,7 @@ def get_gemini_advice(image, detected_diseases, language, api_key):
     try:
         client = genai.Client(api_key=api_key)
 
-        disease_list = ", ".join(detected_diseases) if detected_diseases else "No disease detected"
+        disease_list = ", ".join(detected_diseases) if detected_diseases else "No disease detected (note: this could mean a healthy leaf, or the image may not contain a plant leaf at all — assess the image content before concluding it's a healthy plant)"
 
         lang_instruction = ""
         if language == "Hindi":
@@ -105,16 +105,27 @@ def get_gemini_advice(image, detected_diseases, language, api_key):
 
 A plant disease detection AI has analyzed this leaf image and detected: {disease_list}
 
-{lang_instruction}
+IMPORTANT: Before writing your diagnosis, first check whether the image actually shows a plant leaf at all.
+If the image does NOT show a plant leaf (e.g. it shows a person, document, object, animal, or anything unrelated to plants),
+you MUST respond with exactly this format instead:
 
-Respond ONLY in this exact compact format, no extra text before or after:
+OVERVIEW: This image does not appear to show a plant leaf, so a disease diagnosis cannot be provided.
+SEVERITY: N/A
+CAUSE: N/A
+SYMPTOMS: No leaf detected in the image.
+TREATMENT: Please upload a clear photo of a plant leaf | Ensure the leaf fills most of the frame | Use good lighting for best results
+PREVENTION: N/A
 
-OVERVIEW: <one sentence on what the disease is and its cause>
-SEVERITY: <one or two words only, e.g. "Moderate to severe">
-CAUSE: <2-4 words, e.g. "Fungal infection">
-SYMPTOMS: <one sentence describing key visible signs>
+If the image DOES show a plant leaf, proceed with a normal diagnosis using this exact compact format, no extra text before or after:
+
+OVERVIEW: <one sentence on what the disease is and its cause, or that the leaf looks healthy>
+SEVERITY: <one or two words only, e.g. "Moderate to severe", or "None" if healthy>
+CAUSE: <2-4 words, e.g. "Fungal infection", or "N/A" if healthy>
+SYMPTOMS: <one sentence describing key visible signs, or lack thereof>
 TREATMENT: <bullet 1> | <bullet 2> | <bullet 3> | <bullet 4>
 PREVENTION: <bullet 1> | <bullet 2> | <bullet 3>
+
+{lang_instruction}
 
 Each bullet must be a short actionable phrase, max 12 words. Do not add headings, markdown, or any text outside this format."""
 
