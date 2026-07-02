@@ -44,15 +44,7 @@
           <input type="password" id="apiKey" placeholder="Enter your Gemini API key" />
       </div>
         
-        <div class="config-field config-field-sm" style="margin-bottom: 16px;">
-          <label for="langSelect">Report language</label>
-          <select id="langSelect">
-            <option value="English">English</option>
-            <option value="Hindi">Hindi</option>
-            <option value="Marathi">Marathi</option>
-          </select>
-        </div>
-        <button id="regenerateBtn" style="margin-bottom: 20px;">Regenerate report</button>
+       
 
         <div class="config-field config-field-sm">
           <label for="confSlider">Confidence <span id="confVal">0.50</span></label>
@@ -99,8 +91,18 @@
 
         <div class="result-card report-card">
           <p class="card-label">Diagnosis</p>
-          <div id="reportBody" class="report-body"></div>
+        <div class="config-field config-field-sm" style="margin-bottom: 16px;">
+          <label for="resultLangSelect">Regenerate in language</label>
+          <select id="resultLangSelect">
+            <option value="English">English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Marathi">Marathi</option>
+          </select>
+        </div>
+        <button id="regenerateBtn" style="margin-bottom: 20px;">Regenerate report</button>
 
+        <div id="reportBody" class="report-body"></div>  
+          
           <div class="audio-row">
             <button class="btn-listen" id="listenBtn">
               <i class="ti ti-volume" aria-hidden="true"></i>
